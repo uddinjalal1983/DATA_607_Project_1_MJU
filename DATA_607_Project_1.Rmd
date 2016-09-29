@@ -1,0 +1,70 @@
+---
+title: "DATA_607_Project_1_MJU"
+author: "Md Jalal Uddin"
+date: "September 28, 2016"
+output: pdf_document
+---
+```{r}
+
+library(stringr)
+library(knitr)
+
+```
+
+
+```{r}
+Data_Source_Chess <- readLines("/Users/sql_ent_svc/Google Drive/DATA_607/Project1/Chessfile.txt")
+
+Data_Source_Chess
+
+head(Data_Source_Chess)
+
+```
+
+
+```{r}
+#beginnig from the 5th row and remove the first 4th row
+data <- Data_Source_Chess[c(5:length(Data_Source_Chess))]
+#deleting --+ and replace them with @
+data <- str_replace_all(data, "--+", "@")
+#make the data a long string and split it at @
+data <- unlist(strsplit(paste(data, collapse = ""), split = "@")) #source: https://stat.ethz.ch/R-manual/R-devel/library/base/html/strsplit.html
+#delet other symbols and replace them with commas
+data <- str_replace_all(data, "([:space:]|-|\\/|\\||\\>)+",",")
+head(data)
+
+
+#making player_id the 1st digits
+player_id <- str_sub(str_extract(data, "^,\\d+"), start = 2)
+
+# then place the player name and separated by commas. source: https://cran.r-project.org/web/packages/stringr/stringr.pdf
+player_name <- str_trim(str_replace_all(str_extract(data, ",([:alpha:]|,)+"), ",", " "))
+
+#player_state is a 2 letter group that comes after a B or U or digit
+player_state <- str_sub(str_extract(data, "(B|U|\\d),[:alpha:][:alpha:],\\d"), start = 3, end = 4)
+
+#total_points is 2 digits separted by a .
+total_points <- as.numeric(str_extract(data, "\\d\\.\\d"))
+
+#rating_A is the first group of digits after :,
+rating_A <- as.numeric(str_sub(str_extract(data, ":,\\d+"), start = 3))
+#source:http://stackoverflow.com/questions/36147539/string-extraction-and-manipulation-in-r-with-stringr-dplyr
+
+#creating rating_B  after rating_A
+rating_B <- as.numeric(str_replace_all(str_extract(data, ":,.*,\\d+"), pattern = ":,.*,", replacement = ""))
+#source:http://stackoverflow.com/questions/36147539/string-extraction-and-manipulation-in-r-with-stringr-dplyr
+
+#creating final data with all the information
+data_final <- data.frame(player_id, player_name, player_state, total_points, rating_A , rating_B , stringsAsFactors = FALSE)
+head (data_final)
+
+```
+
+```{r}
+
+# Store a csv
+write.csv(data_final, "C:/Users/sql_ent_svc/Google Drive/DATA_607/Project1/project_1_result.csv")
+
+```
+
+
